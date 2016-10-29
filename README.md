@@ -5,7 +5,8 @@ Repository to hold work to support defensive player classification in the NBA.
 
 ## Introduction
 
-Following research from my undergraduate year, I continue to pursue accurate lineup recommendation in the NBA. Using past performance data and new evaluation metrics, I hope to achieve a high accuracy in the recommendations and provide an easy understanding in how this research can be applied to the NBA today.
+*From (stats.nba.com)*
+Hustle stats evaluate player performances that affect outcomes but cannot be found in traditional box scores. Hustle and activity stats take offensive and defensive analysis to the next level. In addition to standard blocks and steals, players are credited for their defense with contested shots, charges drawn, deflections and loose balls recovered (on offense or defense). On offense, each screen is tracked to examine which players assist in creating scoring opportunities for their teammates.
 
 ## Initial Setup
 - Clone the project
