@@ -113,20 +113,22 @@ def get_player_info(player_id):
     headers = response.json()['resultSets'][0]['headers']
     data = response.json()['resultSets'][0]['rowSet']
     frame = pd.DataFrame(data, columns=headers)
+    # get rid of crap I don't want
+    frame = frame[['PERSON_ID', 'FIRST_NAME', 'LAST_NAME',
+    'DISPLAY_FIRST_LAST', 'HEIGHT', 'WEIGHT', 'POSITION', 'TEAM_ID', 'TEAM_NAME',
+    'TEAM_ABBREVIATION', 'GAMES_PLAYED_FLAG']]
     return frame
 
 def get_players():
     data = pd.read_csv('./data/hustle.csv')
     players = data['PLAYER_ID'].values
 
-    player_df = []
+    player_df = pd.DataFrame(columns=['PERSON_ID', 'FIRST_NAME', 'LAST_NAME',
+    'DISPLAY_FIRST_LAST', 'HEIGHT', 'WEIGHT', 'POSITION', 'TEAM_ID', 'TEAM_NAME',
+    'TEAM_ABBREVIATION', 'GAMES_PLAYED_FLAG'])
 
     for player in players:
         player_data = get_player_info(player)
         player_df.append(player_data)
 
     player_df.to_csv('./data/players.csv')
-
-
-
-
