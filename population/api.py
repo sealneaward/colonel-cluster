@@ -2,21 +2,6 @@ import requests
 import pandas as pd
 
 
-def get_rim_protection():
-    url = 'http://stats.nba.com/stats/leaguedashptstats?College=&Conference=&Country=&DateFrom=&DateTo=&Division=' \
-          '&DraftPick=&DraftYear=&GameScope=&Height=&LastNGames=0&LeagueID=00&Location=&Month=0&OpponentTeamID=0' \
-          '&Outcome=&PORound=0&PerMode=Totals&PlayerExperience=&PlayerOrTeam=Player&PlayerPosition=' \
-          '&PtMeasureType=Defense&Season=2015-16&SeasonSegment=&SeasonType=Playoffs&StarterBench=' \
-          '&TeamID=0&VsConference=&VsDivision=&Weight='
-    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-    while response.status_code != 200:
-        response = requests.get(url)
-    headers = response.json()['resultSets'][0]['headers']
-    data = response.json()['resultSets'][0]['rowSet']
-    frame = pd.DataFrame(data, columns=headers)
-    return frame
-
-
 def get_opponent_shooting_by_zone():
     url = 'http://stats.nba.com/stats/leaguedashplayershotlocations?College=&Conference=&Country=&DateFrom=&DateTo=' \
           '&DistanceRange=By+Zone&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0' \
