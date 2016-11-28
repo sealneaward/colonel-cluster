@@ -77,7 +77,7 @@ data = subset(data, select = c(
 data[mapply(is.infinite, data)] = 0 
 data = na.omit(data)
 
-write.csv(data, './data/cluster_metrics.csv')
+write.csv(data, './data/cluster_metrics.csv', row.names = FALSE, quote = FALSE)
 
 names = data['PLAYER_NAME']
 data$PLAYER_NAME = NULL
@@ -105,21 +105,54 @@ handle_data = subset(data, select = c(
   'DEFLECTIONS',
   'STL',
   'BLK',
-  'LOOSE_BALLS_RECOVERED'
+  'LOOSE_BALLS_RECOVERED',
+  'DREB'
 ))
 
-hustle_data = subset(data, select = c(
-  'SPEED_DIFF'
-))
+# zone_model
+data = zone_data
 
-# select dataset to plot
+BIC = mclustBIC(data)
+mod1 = Mclust(data, x = BIC)
+print(summary(mod1, parameters = TRUE))
+zone_data = cbind(zone_data, PLAYER_NAME = names)
+zone_data = cbind(zone_data, CLUSTER = mod1$classification)
+
+jpeg('./plots/zone_cluster.jpg')
+mod1dr = MclustDR(mod1, lambda = 1)
+plot(mod1dr, what = "scatterplot")
+dev.off()
+
+write.csv(zone_data,file='./data/zone_cluster.csv',row.names=FALSE,quote=FALSE)    
+
+# contest_model
+data = contested_data
+
+BIC = mclustBIC(data)
+mod1 = Mclust(data, x = BIC)
+print(summary(mod1, parameters = TRUE))
+contested_data = cbind(contested_data, PLAYER_NAME = names)
+contested_data = cbind(contested_data, CLUSTER = mod1$classification)
+
+jpeg('./plots/contest_cluster.jpg')
+mod1dr = MclustDR(mod1, lambda = 1)
+plot(mod1dr, what = "scatterplot")
+dev.off()
+
+write.csv(contested_data,file='./data/contest_cluster.csv',row.names=FALSE,quote=FALSE)    
+
+# handle_model
 data = handle_data
 
 BIC = mclustBIC(data)
 mod1 = Mclust(data, x = BIC)
 print(summary(mod1, parameters = TRUE))
-# plot(BIC)
-plot(mod1, what = "classification")
+handle_data = cbind(handle_data, PLAYER_NAME = names)
+handle_data = cbind(handle_data, CLUSTER = mod1$classification)
 
+jpeg('./plots/handle_cluster.jpg')
 mod1dr = MclustDR(mod1, lambda = 1)
-# plot(mod1dr, what = "boundaries", ngrid = 200)
+plot(mod1dr, what = "scatterplot")
+dev.off()
+
+write.csv(handle_data,file='./data/handle_cluster.csv',row.names=FALSE,quote=FALSE)    
