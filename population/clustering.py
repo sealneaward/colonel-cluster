@@ -7,36 +7,12 @@ import matplotlib as mpl
 
 from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
 
-#####################
-# Data
-data = pd.read_csv('./data/zone_shooting.csv')
-
-# clean rows of any NaN values
-data = data.dropna()
-
-names = data['PLAYER_NAME'].values
-X = data.drop([
-    'PLAYER_ID',
-    'PLAYER_NAME',
-    'TEAM_ID',
-    'TEAM_ABBREVIATION',
-    'AGE',
-    'OPP_FGA',
-    'OPP_FGM',
-    'OPP_FG_PCT',
-],1)
-
-#####################
 
 color_iter = itertools.cycle([
     'b', 'c', 'g', 'y','brown',
     'lightgray', 'salmon', 'moccasin',
     'pink', 'purple', 'lime', 'firebrick'
 ])
-
-def normalize(frame):
-    norm = (frame - frame.mean()) / (frame.max() - frame.min())
-    return norm
 
 def plot_results(X, Y_, means, covariances, index, title):
     splot = plt.subplot(2, 1, 1 + index)
@@ -62,30 +38,40 @@ def plot_results(X, Y_, means, covariances, index, title):
     plt.title(title)
 
 
-print 'X shape: ' + str(X.shape)
-print 'Names shape: ' + str(len(names))
+#####################
+# Data
+contest_data = pd.read_csv('./data/contest_cluster.csv')
+repossesion_data = pd.read_csv('./data/handle_cluster.csv')
 
-# normalize all measurements
-for column in X:
-    X[column] = normalize(X[column])
+names = contest_data['PLAYER_NAME'].values
 
-X = X.as_matrix()
+contest_X = contest_data.drop(['PLAYER_NAME', 'CLUSTER'], 1)
+repossesion_X = repossesion_data.drop(['PLAYER_NAME', 'CLUSTER'], 1)
 
-# Fit a Gaussian mixture with EM using five components
-gmm = GaussianMixture(n_components=10, covariance_type='full').fit(X)
-predictions = gmm.predict(X)
+#####################
+
+#####################
+# Contest Model
+contest_X = contest_X.as_matrix()
+gmm = GaussianMixture(n_components=4, covariance_type='full')
+gmm.fit(contest_X)
+
+#####################
+
+predictions = gmm.predict(contest_X)
 
 i = 0
 for player in names:
     print 'Player: ' + player + ' has class: ' + str(predictions[i])
     i += 1
 
-print 'GMM Labels: ' + str(gmm.predict(X))
-plot_results(X, gmm.predict(X), gmm.means_, gmm.covariances_, 0,'Gaussian Mixture')
+print 'GMM Labels: ' + str(gmm.predict(contest_X))
+plot_results(contest_X, gmm.predict(contest_X), gmm.means_, gmm.covariances_, 0,'Gaussian Mixture')
 
-# # Fit a Dirichlet process Gaussian mixture using five components
-# dpgmm = BayesianGaussianMixture(n_components=5, covariance_type='full').fit(X)
-# print 'GMM Dirichlet Labels: ' + str(dpgmm.predict(X))
-# plot_results(X, dpgmm.predict(X), dpgmm.means_, dpgmm.covariances_, 1,'Bayesian Gaussian Mixture with a Dirichlet process prior')
+# Fit a Dirichlet process Gaussian mixture using five components
+dpgmm = BayesianGaussianMixture(n_components=20, covariance_type='full').fit(contest_X)
+print 'GMM Dirichlet Labels: ' + str(dpgmm.predict(contest_X))
+plot_results(contest_X, dpgmm.predict(contest_X), dpgmm.means_, dpgmm.covariances_, 1,'Bayesian Gaussian Mixture with a Dirichlet process prior')
 
 plt.savefig('./plots/GMM_BGM_clusters.jpg')
+
