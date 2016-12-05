@@ -19,6 +19,7 @@ data = data[data$MIN >= 10,]
 # subset for columns used in calculations
 data = subset(data, select = c(
   'PLAYER_NAME',
+  'TEAM_ABBREVIATION',
   'MIN',
   'AVG_SPEED_OFF',
   'AVG_SPEED_DEF',
@@ -84,6 +85,7 @@ data = transform(data, OPP_MR = (OPP_MR + OPP_NRA)/2)
 
 data = subset(data, select = c(
   'PLAYER_NAME',
+  'TEAM_ABBREVIATION',
   'CONTESTED_SHOTS_2PT',
   'CONTESTED_SHOTS_3PT',
   'DEFLECTIONS',
@@ -102,6 +104,9 @@ write.csv(data, './data/cluster_metrics.csv', row.names = FALSE, quote = FALSE)
 
 names = data['PLAYER_NAME']
 data$PLAYER_NAME = NULL
+
+teams = data['TEAM_ABBREVIATION']
+data$TEAM_ABBREVIATION = NULL
 
 data = scale(data)
 
@@ -152,6 +157,7 @@ print('Overall Model')
 print('############################')
 print(summary(mod1, parameters = TRUE))
 overall_data = cbind(overall_data, PLAYER_NAME = names)
+overall_data = cbind(overall_data, TEAM_ABBREVIATION = teams)
 overall_data = cbind(overall_data, CLUSTER = mod1$classification)
 
 png('./plots/overall_cluster.png', width=1800,height=1000,res=300)
