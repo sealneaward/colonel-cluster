@@ -8,13 +8,16 @@ zone_data = read.csv('./data/zone_shooting.csv', header=TRUE)
 speed_data = read.csv('./data/speed.csv', header=TRUE)
 hustle_data = read.csv('./data/hustle.csv', header=TRUE)
 overall_data = read.csv('./data/overall_defense.csv', header=TRUE)
+player_data = read.csv('./data/players.csv', header=TRUE)
 
 data = merge(zone_data, speed_data, by=c('PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION'))
 data = merge(data, hustle_data, by=c('PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION'))
 data = merge(data, overall_data, by=c('PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION'))
+data = merge(data, player_data, by=c('PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION'))
 
 # any player that does not average ten or more minutes should be removed
 data = data[data$MIN >= 10,]
+data = data[data$GP >= 5,]
 
 # subset for columns used in calculations
 data = subset(data, select = c(
@@ -42,7 +45,8 @@ data = subset(data, select = c(
   'OPP_FG_PCT_RC3',
   'OPP_FGA_AB3',
   'OPP_FG_PCT_AB3',
-  'STL'
+  'STL',
+  'HEIGHT'
   ))
 
 ########################################
@@ -94,7 +98,8 @@ data = subset(data, select = c(
   'STL',
   'BLK',
   'LOOSE_BALLS_RECOVERED',
-  'AVG_SPEED_DEF'
+  'AVG_SPEED_DEF',
+  'HEIGHT'
 ))
 
 data[mapply(is.infinite, data)] = 0 
@@ -143,7 +148,8 @@ overall_data = subset(data, select = c(
   'STL',
   'LOOSE_BALLS_RECOVERED',
   'DREB',
-  'AVG_SPEED_DEF'
+  'AVG_SPEED_DEF',
+  'HEIGHT'
 ))
 
 
@@ -151,7 +157,7 @@ overall_data = subset(data, select = c(
 data = overall_data
 
 BIC = mclustBIC(data)
-mod1 = Mclust(data, x = BIC)
+mod1 = Mclust(data, x = BIC, G=5:6)
 print('############################')
 print('Overall Model')
 print('############################')

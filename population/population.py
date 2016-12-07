@@ -11,4 +11,8 @@ import api
 #
 # frame = api.get_speed_and_distance()
 # frame.to_csv('data/speed.csv', index=False)
-api.get_players()
+frame = api.get_players()
+frame.to_csv('./data/players.csv', index=False)
+
+# frame = api.get_teams()
+# frame.to_csv('./data/team_records.csv', index=False)
