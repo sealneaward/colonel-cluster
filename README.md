@@ -14,20 +14,23 @@ Hustle stats evaluate player performances that affect outcomes but cannot be fou
 ```
 sudo ./setup.sh
 ```
-- Create postgresql user and database. The root user will be used as the default owner.
-```
-sudo su - postgres
-createuser root
-createdb nba -O root
-psql
-\password root
-password: root
-enter it again: root
-\q
-exit
-```
-
 ## Data Population
+- Navigate to the population folder in the project
 
-### Non Movement
-- Run the db_populate.py script
+- Populate the data
+
+```
+python populate.py
+```
+
+- Perform clustering
+
+```
+Rscript clustering.py
+```
+
+- Run team by team analysis
+
+```
+python clustering_analysis.py
+```

@@ -58,12 +58,6 @@ data = transform(data, TIME_NORMAL = 40 / MIN)
 ########################################
 # Make products of volume and percentage, then segment skills to three zones: paint, mid range, and three
 ########################################
-# data = transform(data, OPP_FGA_RA = (OPP_FGA_RA*TIME_NORMAL) / OPP_FG_PCT_RA)
-# data = transform(data, OPP_NRA = (OPP_FGA_NRA*TIME_NORMAL) / OPP_FG_PCT_NRA)
-# data = transform(data, OPP_MR = (OPP_FGA_MR*TIME_NORMAL) / OPP_FG_PCT_MR)
-# data = transform(data, OPP_LC3 = (OPP_FGA_LC3*TIME_NORMAL) / OPP_FG_PCT_LC3)
-# data = transform(data, OPP_RC3 = (OPP_FGA_RC3*TIME_NORMAL) / OPP_FG_PCT_RC3)
-# data = transform(data, OPP_AB3 = (OPP_FGA_AB3*TIME_NORMAL) / OPP_FG_PCT_AB3)
 
 data = transform(data, OPP_FGA_RA = OPP_FGA_RA*TIME_NORMAL)
 data = transform(data, OPP_NRA = OPP_FGA_NRA*TIME_NORMAL)
@@ -115,31 +109,6 @@ data$TEAM_ABBREVIATION = NULL
 
 data = scale(data)
 
-# # create frames of related stats
-# zone_data = subset(data, select = c(
-#   'OPP_RA',
-#   'OPP_NRA',
-#   'OPP_MR',
-#   'OPP_LC3',
-#   'OPP_RC3',
-#   'OPP_AB3'
-# ))
-
-contested_data = subset(data, select = c(
-  'CONTESTED_SHOTS_2PT',
-  'CONTESTED_SHOTS_3PT',
-  'BLK_PER_SHOT'
-))
-
-handle_data = subset(data, select = c(
-  'DEFLECTIONS',
-  'STL',
-  'BLK',
-  'LOOSE_BALLS_RECOVERED',
-  'DREB',
-  'AVG_SPEED_DEF'
-))
-
 overall_data = subset(data, select = c(
   'CONTESTED_SHOTS_2PT',
   'CONTESTED_SHOTS_3PT',
@@ -161,60 +130,34 @@ mod1 = Mclust(data, x = BIC, G=5:6)
 print('############################')
 print('Overall Model')
 print('############################')
+summary_clusters = summary(mod1, parameters = TRUE)
+distribution_clusters = summary(mod1, parameters = TRUE)$pro
+mean_clusters = summary(mod1, parameters = TRUE)$mean
 print(summary(mod1, parameters = TRUE))
 overall_data = cbind(overall_data, PLAYER_NAME = names)
 overall_data = cbind(overall_data, TEAM_ABBREVIATION = teams)
 overall_data = cbind(overall_data, CLUSTER = mod1$classification)
 
-png('./plots/overall_cluster.png', width=1800,height=1000,res=300)
+png('./plots/overall_cluster.png', width=1800,height=1300,res=300)
 mod1dr = MclustDR(mod1, lambda = 1)
 plot(mod1dr, what = "scatterplot")
 title(main="Defense Evaluation Types", col.main="black")
 dev.off()
 
-png('./plots/overall_cluster_number.png', width=1800,height=1000,res=300)
-plot(BIC)
+png('./plots/overall_cluster_number.png', width=1800,height=1300,res=300)
+plot(BIC, legendArgs = list(x = "bottom", cex=0.6))
 title(main="BIC Score for Different Cluster Numbers", col.main="black")
 dev.off()
 
+png('./plots/distribution_of_clusters.png', width=1800,height=1300,res=300)
+x <- overall_data$CLUSTER 
+h<-hist(x, breaks=10, col="red", xlab="Defensive Player Classification", 
+        main="Distribution of Defensive Classification Types") 
+xfit<-seq(min(x),max(x),length=40) 
+yfit<-dnorm(xfit,mean=mean(x),sd=sd(x)) 
+yfit <- yfit*diff(h$mids[1:2])*length(x) 
+lines(xfit, yfit, col="blue", lwd=2)
+dev.off()
+
 write.csv(overall_data,file='./data/overall_cluster.csv',row.names=FALSE,quote=FALSE)
-# 
-# # contest_model
-# data = contested_data
-# 
-# BIC = mclustBIC(data)
-# mod1 = Mclust(data, x = BIC)
-# print('############################')
-# print('Contest Model')
-# print('############################')
-# print(summary(mod1, parameters = TRUE))
-# contested_data = cbind(contested_data, PLAYER_NAME = names)
-# contested_data = cbind(contested_data, CLUSTER = mod1$classification)
-# 
-# png('./plots/contest_cluster.png', width=1400,height=1100,res=300)
-# mod1dr = MclustDR(mod1, lambda = 1)
-# plot(BIC)
-# title(main="Contesting Defense Evaluation Types", col.main="black")
-# dev.off()
-# 
-# write.csv(contested_data,file='./data/contest_cluster.csv',row.names=FALSE,quote=FALSE)    
-# 
-# # handle_model
-# data = handle_data
-# 
-# BIC = mclustBIC(data)
-# mod1 = Mclust(data, x = BIC)
-# print('############################')
-# print('Handle Model')
-# print('############################')
-# print(summary(mod1, parameters = TRUE))
-# handle_data = cbind(handle_data, PLAYER_NAME = names)
-# handle_data = cbind(handle_data, CLUSTER = mod1$classification)
-# 
-# png('./plots/handle_cluster.png', width=1400,height=1200,res=300)
-# mod1dr = MclustDR(mod1, lambda = 1)
-# plot(BIC)
-# title(main="Ball Handle Defense Evaluation Types", col.main="black")
-# dev.off()
-# 
-# write.csv(handle_data,file='./data/handle_cluster.csv',row.names=FALSE,quote=FALSE)
+write.csv(mean_clusters,file='./data/mean_cluster.csv',row.names=FALSE,quote=FALSE)
