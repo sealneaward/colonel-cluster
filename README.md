@@ -26,7 +26,7 @@ python populate.py
 - Perform clustering
 
 ```
-Rscript clustering.py
+Rscript clustering.R
 ```
 
 - Run team by team analysis
