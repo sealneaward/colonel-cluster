@@ -126,7 +126,7 @@ overall_data = subset(data, select = c(
 data = overall_data
 
 BIC = mclustBIC(data)
-mod1 = Mclust(data, x = BIC, G=5:6)
+mod1 = Mclust(data, x = BIC, G=1:10)
 print('############################')
 print('Overall Model')
 print('############################')

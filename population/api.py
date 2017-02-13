@@ -114,9 +114,9 @@ def get_player_info(player_id):
     frame = frame1[['PERSON_ID', 'FIRST_NAME', 'LAST_NAME',
     'DISPLAY_FIRST_LAST', 'HEIGHT', 'WEIGHT', 'POSITION', 'TEAM_ID', 'TEAM_NAME',
     'TEAM_ABBREVIATION']]
-    frame['GP'] = frame2['GP']
-    frame['PLAYER_ID'] = frame['PERSON_ID']
-    frame['PLAYER_NAME'] = frame['DISPLAY_FIRST_LAST']
+    frame.loc[:,'GP'] = frame2.loc[:,'GP']
+    frame.loc[:,'PLAYER_ID'] = frame.loc[:,'PERSON_ID']
+    frame.loc[:,'PLAYER_NAME'] = frame.loc[:,'DISPLAY_FIRST_LAST']
 
     return frame
 
