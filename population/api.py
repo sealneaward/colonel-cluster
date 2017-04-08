@@ -2,6 +2,21 @@ import requests
 import pandas as pd
 
 
+def get_shooting_by_zone():
+    url = 'http://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=&DateTo=&Division=' \
+          '&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=' \
+          '&MeasureType=Scoring&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0' \
+          '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2015-16&SeasonSegment=' \
+          '&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight='
+
+    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+    while response.status_code != 200:
+        response = requests.get(url)
+    headers = response.json()['resultSets'][0]['headers']
+    data = response.json()['resultSets'][0]['rowSet']
+    frame = pd.DataFrame(data, columns=headers)
+    return frame
+
 def get_opponent_shooting_by_zone():
     url = 'http://stats.nba.com/stats/leaguedashplayershotlocations?College=&Conference=&Country=&DateFrom=&DateTo=' \
           '&DistanceRange=By+Zone&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0' \
@@ -45,6 +60,24 @@ def get_opponent_shooting_by_zone():
     data = response.json()['resultSets']['rowSet']
     frame = pd.DataFrame(data, columns=headers)
     return frame
+
+def get_shooting(player_id, game_id=''):
+    url = 'http://stats.nba.com/stats/shotchartdetail?Period=0&VsConference='\
+    '&LeagueID=00&LastNGames=0&TeamID=0&Position=&Location=&Outcome='\
+    '&ContextMeasure=FGA&DateFrom=&StartPeriod=&DateTo=&OpponentTeamID=0'\
+    '&ContextFilter=&RangeType=&Season=2015-16&AheadBehind='\
+    '&PlayerID='+str(player_id)+'&EndRange=&VsDivision=&PointDiff='\
+    '&RookieYear=&GameSegment=&Month=0&ClutchTime=&StartRange='\
+    '&EndPeriod=&SeasonType=Regular+Season&SeasonSegment='\
+    '&GameID='+str(game_id)+'&PlayerPosition='
+
+    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+    while response.status_code != 200:
+        response = requests.get(url)
+    headers = response.json()['resultSets'][0]['headers']
+    data = response.json()['resultSets'][0]['rowSet']
+    shots = pd.DataFrame(data, columns=headers)
+    return shots
 
 
 def get_hustle_stats():
@@ -134,7 +167,7 @@ def get_team_info(team_id):
     return frame
 
 def get_players():
-    data = pd.read_csv('./data/hustle.csv')
+    data = pd.read_csv('./data/defense/hustle.csv')
     players = data['PLAYER_ID'].values
 
     player_df = pd.DataFrame(columns=['PLAYER_ID', 'PLAYER_NAME', 'HEIGHT', 'WEIGHT', 'POSITION', 'TEAM_ID',
@@ -161,7 +194,7 @@ def get_teams():
     team_df = pd.DataFrame(columns=data.columns.values)
 
     for team in teams:
-        team_data = get_team_info(team)
+        team_data = get_team_info(int(team))
         team_data['WIN_PCT'] = team_data['W'].values[0] / (team_data['W'].values[0] + team_data['L'].values[0] * 1.0)
         team_df = pd.concat([team_df, team_data[['TEAM_ID', 'TEAM_ABBREVIATION', 'WIN_PCT']]])
 

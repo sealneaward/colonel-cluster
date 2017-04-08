@@ -1,13 +1,13 @@
 library(mclust)
-# cat("\014")  
+# cat("\014")
 if (getwd() == '/home/neil'){
-  setwd('projects/colonel-cluster/population')  
+  setwd('projects/colonel-cluster/population')
 }
 # read csv and merge
-zone_data = read.csv('./data/zone_shooting.csv', header=TRUE)
+zone_data = read.csv('./data/defense/zone_shooting.csv', header=TRUE)
 speed_data = read.csv('./data/speed.csv', header=TRUE)
-hustle_data = read.csv('./data/hustle.csv', header=TRUE)
-overall_data = read.csv('./data/overall_defense.csv', header=TRUE)
+hustle_data = read.csv('./data/defense/hustle.csv', header=TRUE)
+overall_data = read.csv('./data/defense/overall_defense.csv', header=TRUE)
 player_data = read.csv('./data/players.csv', header=TRUE)
 
 data = merge(zone_data, speed_data, by=c('PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION'))
@@ -22,6 +22,7 @@ data = data[data$GP >= 5,]
 # subset for columns used in calculations
 data = subset(data, select = c(
   'PLAYER_NAME',
+  'PLAYER_ID',
   'TEAM_ABBREVIATION',
   'MIN',
   'AVG_SPEED_OFF',
@@ -83,6 +84,7 @@ data = transform(data, OPP_MR = (OPP_MR + OPP_NRA)/2)
 
 data = subset(data, select = c(
   'PLAYER_NAME',
+  'PLAYER_ID',
   'TEAM_ABBREVIATION',
   'CONTESTED_SHOTS_2PT',
   'CONTESTED_SHOTS_3PT',
@@ -96,13 +98,16 @@ data = subset(data, select = c(
   'HEIGHT'
 ))
 
-data[mapply(is.infinite, data)] = 0 
+data[mapply(is.infinite, data)] = 0
 data = na.omit(data)
 
-write.csv(data, './data/cluster_metrics.csv', row.names = FALSE, quote = FALSE)
+write.csv(data, './data/defense/cluster_metrics.csv', row.names = FALSE, quote = FALSE)
 
 names = data['PLAYER_NAME']
 data$PLAYER_NAME = NULL
+
+ids = data['PLAYER_ID']
+data$PLAYER_ID = NULL
 
 teams = data['TEAM_ABBREVIATION']
 data$TEAM_ABBREVIATION = NULL
@@ -126,7 +131,7 @@ overall_data = subset(data, select = c(
 data = overall_data
 
 BIC = mclustBIC(data)
-mod1 = Mclust(data, x = BIC, G=1:10)
+mod1 = Mclust(data, x = BIC, G=1:9)
 print('############################')
 print('Overall Model')
 print('############################')
@@ -135,29 +140,24 @@ distribution_clusters = summary(mod1, parameters = TRUE)$pro
 mean_clusters = summary(mod1, parameters = TRUE)$mean
 print(summary(mod1, parameters = TRUE))
 overall_data = cbind(overall_data, PLAYER_NAME = names)
+overall_data = cbind(overall_data, PLAYER_ID = ids)
 overall_data = cbind(overall_data, TEAM_ABBREVIATION = teams)
 overall_data = cbind(overall_data, CLUSTER = mod1$classification)
 
-png('./plots/overall_cluster.png', width=1800,height=1300,res=300)
+png('./plots/overall_cluster_defense.png', width=1800,height=1300,res=300)
 mod1dr = MclustDR(mod1, lambda = 1)
-plot(mod1dr, what = "scatterplot")
+plot(mod1dr, what = "scatterplot", xaxt='n', yaxt='n')
 title(main="Defense Evaluation Types", col.main="black")
 dev.off()
 
-png('./plots/overall_cluster_number.png', width=1800,height=1300,res=300)
-plot(BIC, legendArgs = list(x = "bottom", cex=0.6))
-title(main="BIC Score for Different Cluster Numbers", col.main="black")
+# get cumalitive BIC score
+BIC <- rowSums(BIC)/14
+
+png('./plots/overall_cluster_number_defense.png', width=1800,height=1300,res=300)
+plot(x=c(1:9),y=BIC,type="l",xlab="Number of Components", ylab="BIC Score")
+axis(1, at=1:9)
+title(main="BIC Score for Different Defensive Cluster Numbers", col.main="black")
 dev.off()
 
-png('./plots/distribution_of_clusters.png', width=1800,height=1300,res=300)
-x <- overall_data$CLUSTER 
-h<-hist(x, breaks=10, col="red", xlab="Defensive Player Classification", 
-        main="Distribution of Defensive Classification Types") 
-xfit<-seq(min(x),max(x),length=40) 
-yfit<-dnorm(xfit,mean=mean(x),sd=sd(x)) 
-yfit <- yfit*diff(h$mids[1:2])*length(x) 
-lines(xfit, yfit, col="blue", lwd=2)
-dev.off()
+write.csv(overall_data,file='./data/defense/cluster.csv',row.names=FALSE,quote=FALSE)
 
-write.csv(overall_data,file='./data/overall_cluster.csv',row.names=FALSE,quote=FALSE)
-write.csv(mean_clusters,file='./data/mean_cluster.csv',row.names=FALSE,quote=FALSE)
